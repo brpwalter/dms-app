@@ -1,0 +1,16 @@
+curl -X POST http://localhost:8080/api/documents/upload -F "file=@C:\projects_spring\dms\dms\dms\Umwelt-Tipp-13_Klimaschutz-im-Alltag.pdf"  -F "title=Mein Erstes PDF"
+
+http://localhost:8080/api/documents
+
+# 1. Neues React-Projekt mit Vite erstellen (Vite ist viel schneller als create-react-app)
+npm create vite@latest dms-frontend -- --template react
+
+# 2. In den Ordner wechseln
+cd dms-frontend
+
+# 3. Axios (für API-Requests) installieren
+npm install axios
+
+# 4. Tailwind CSS für das Styling installieren
+npm install -D tailwindcss postcss autoprefixer
+npx tailwindcss init -p
