@@ -6,10 +6,12 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -21,54 +23,58 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import java.util.List;
 
 @Configuration
-@EnableWebSecurity
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final UserDetailsService userDetailsService;
 
-    public SecurityConfig(@Lazy JwtAuthenticationFilter jwtAuthenticationFilter) {
+    // Einziger Konstruktor (nutzt @Lazy für den JWT-Filter, um zyklische Abhängigkeiten zu verhindern)
+    public SecurityConfig(@Lazy JwtAuthenticationFilter jwtAuthenticationFilter, 
+                          UserDetailsService userDetailsService) {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+        this.userDetailsService = userDetailsService;
     }
 
     // ==========================================
-    // KETTE 1: Komplett öffentlich (Login, Register, Error)
+    // KETTE 1: Öffentlich (Auth, Dokumente, Kategorien, Error)
     // ==========================================
     @Bean
     @Order(1) // Höchste Priorität, wird zuerst geprüft
     public SecurityFilterChain publicSecurityFilterChain(HttpSecurity http) throws Exception {
         http
-            // Reagiert NUR auf die Auth- und Error-Pfade
+            // Definiert, auf welche Routen diese freie Kette überhaupt anspringen darf
             .securityMatchers(match -> match
-                .requestMatchers("/api/auth/**", "/error")
+                .requestMatchers("/api/auth/**", "/api/categories/**", "/api/documents/**", "/error")
             )
-            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+            .cors(cors -> cors.configure(http)) // Nutzt die unten definierte corsConfigurationSource
             .csrf(csrf -> csrf.disable())
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
                 .dispatcherTypeMatchers(DispatcherType.ERROR).permitAll()
-                .anyRequest().permitAll() // Alles innerhalb dieses Matchers ist frei!
+                .anyRequest().permitAll() // Alles innerhalb dieses Matchers ist ohne Login frei zugänglich!
             );
 
-        // HIER WIRD KEIN jwtAuthenticationFilter GEBRAUCHT!
         return http.build();
     }
 
     // ==========================================
-    // KETTE 2: Geschützte API (Dokumente, Kategorien etc.)
+    // KETTE 2: Geschützte API (Greift als Fallback für alles andere)
     // ==========================================
     @Bean
-    @Order(2) // Greift für alles andere
+    @Order(2) 
     public SecurityFilterChain apiSecurityFilterChain(HttpSecurity http) throws Exception {
         http
-            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+            .cors(cors -> cors.configure(http))
             .csrf(csrf -> csrf.disable())
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-                .anyRequest().authenticated() // Alles andere MUSS eingeloggt sein
+                .anyRequest().authenticated() // Jede andere Route ERFORDERT Authentifizierung
             );
 
         // JWT-Filter schützt diese Kette
-        http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+        if (jwtAuthenticationFilter != null) {
+            http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+        }
 
         return http.build();
     }
@@ -88,6 +94,14 @@ public class SecurityConfig {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
+    }
+
+    @Bean
+    public AuthenticationProvider authenticationProvider() {
+        // Nutzt direkt die über den Konstruktor sicher injizierte 'userDetailsService'-Instanz
+        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider(this.userDetailsService);
+        authProvider.setPasswordEncoder(passwordEncoder());
+        return authProvider;
     }
 
     @Bean

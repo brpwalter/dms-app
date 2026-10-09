@@ -1,6 +1,7 @@
 package com.bw.dms.config;
 
 import com.bw.dms.model.User;
+import com.bw.dms.repository.CategoryRepository;
 import com.bw.dms.repository.UserRepository;
 
 import org.springframework.boot.CommandLineRunner;
@@ -12,15 +13,29 @@ public class DataInitializer implements CommandLineRunner {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final CategoryRepository categoryRepository;
+    public DataInitializer(){
+        this.userRepository = null;
+        this.passwordEncoder = null;
+        this.categoryRepository = null;
+    }
+
+      public DataInitializer(CategoryRepository categoryRepository) {
+        this.userRepository = null;
+        this.passwordEncoder = null;
+        this.categoryRepository = null;
+    }
 
     DataInitializer(PasswordEncoder passwordEncoder, UserRepository userRepository) {
         this.passwordEncoder = passwordEncoder;
         this.userRepository = userRepository;
+        this.categoryRepository = null;
     }
 
    @Override
 public void run(String... args) throws Exception {
     // Wir suchen gezielt nach dem admin
+     if (categoryRepository != null && categoryRepository.count() == 0) {
     java.util.Optional<User> existingAdmin = userRepository.findByUsername("admin");
     
     if (existingAdmin.isPresent()) {
@@ -39,6 +54,7 @@ public void run(String... args) throws Exception {
         userRepository.save(admin);
         System.out.println("--> [DMS] NEUER Testbenutzer erfolgreich angelegt: admin / password123");
     }
+     }    
 }
 
 }

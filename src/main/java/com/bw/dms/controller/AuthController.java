@@ -40,8 +40,8 @@ public class AuthController {
         return ResponseEntity.ok(Map.of("token", token));
     }
 
-    @PostMapping("/register")
-public ResponseEntity<?> register(@RequestBody LoginRequest request) { // Falls dein DTO ein email-Feld hat
+ @PostMapping("/register")
+public ResponseEntity<?> register(@RequestBody LoginRequest request) {
     if (userRepository.findByUsername(request.getUsername()).isPresent()) {
         return ResponseEntity.badRequest().body(Map.of("message", "Benutzername existiert bereits!"));
     }
@@ -49,9 +49,7 @@ public ResponseEntity<?> register(@RequestBody LoginRequest request) { // Falls 
     User newUser = new User();
     newUser.setUsername(request.getUsername());
     newUser.setPassword(passwordEncoder.encode(request.getPassword()));
-    
-    // HIER DIE E-MAIL ERGÄNZEN:
-    newUser.setEmail(request.getEmail()); 
+    newUser.setEmail(request.getEmail()); // HIER HINZUFÜGEN!
 
     userRepository.save(newUser);
     return ResponseEntity.ok(Map.of("message", "Benutzer erfolgreich registriert."));
