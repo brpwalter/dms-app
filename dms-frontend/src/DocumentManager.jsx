@@ -124,6 +124,18 @@ function DocumentManager() {
     }
   };
 
+      const handleDeleteCategory = async (categoryId) => {
+    if (window.confirm("Möchtest du diese Kategorie wirklich löschen?")) {
+      try {
+        await axios.delete(`http://localhost:8080/api/categories/${categoryId}`);
+        setCategories((prev) => prev.filter((cat) => cat.id !== categoryId));
+      } catch (error) {
+        console.error("Fehler beim Löschen", error);
+      }
+    }
+  };
+
+
     // HIERARCHIE-LOGIK: Dokumente filtern und sortieren
   // 1. Filtern nach Suche und ausgewählter Kategorie im Suchbereich
   const filteredDocs = documents.filter(doc => {
@@ -237,6 +249,7 @@ function DocumentManager() {
                 <h4 style={{ color: '#1e293b', margin: '5px 0', backgroundColor: '#e2e8f0', padding: '6px 12px', borderRadius: '4px' }}>
                   📁 {category.name} <span style={{ fontSize: '12px', fontWeight: 'normal', color: '#64748b' }}>(ID: {category.id})</span>
                 </h4>
+                 <button onClick={() => handleDeleteCategory(category.id)} style={{ fontSize: '12px', color: 'red' }}>Delete</button>
                 <div style={{ marginTop: '10px' }}>
                   {docsInCat.length === 0 ? (
                     <p style={{ fontStyle: 'italic', color: '#94a3b8', fontSize: '13px', marginLeft: '10px' }}>Keine Hauptdokumente in dieser Kategorie.</p>

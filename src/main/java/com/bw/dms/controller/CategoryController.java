@@ -49,5 +49,12 @@ public Category createCategory(@RequestBody Category category) {
     return savedCategory; 
 }
 
-
+ // 6. DELETE
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteCategory(@PathVariable Long id) {
+        Category category = categoryRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Kategorie nicht gefunden"));
+        categoryRepository.delete(category);
+        return ResponseEntity.noContent().build();
+    }
 }

@@ -89,3 +89,6 @@ CREATE DATABASE dms_db;
 ### Kategorien (`/api/categories`)
 *   `GET /api/categories` – Listet alle Kategorien auf.
 *   `POST /api/categories` – Erstellt eine neue Kategorie (`{ "name": "Ordnername" }`).
+---
+mvn clean test
+mvn allure:serve
