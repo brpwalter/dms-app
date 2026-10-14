@@ -6,6 +6,7 @@ function DocumentManager() {
   const [categories, setCategories] = useState([]);
   const [newCategoryName, setNewCategoryName] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
+  const [file, setFile] = useState(null);
   const [documents, setDocuments] = useState([]);
 
     // States für Suche und Filter
@@ -17,20 +18,32 @@ function DocumentManager() {
     fetchDocuments();
   }, []);
 
- const fetchDocuments = async () => {
+  // Wird aufgerufen, wenn das Suchformular abgeschickt wird
+  const handleSearchSubmit = (e) => {
+    e.preventDefault();
+    fetchDocuments(searchQuery); // Suche im Backend ausführen
+  };
+
+  
+ const fetchDocuments = async (query = "") => {
     try {
-      const response = await axios.get('http://localhost:8080/api/documents');
-      if (Array.isArray(response.data)) {
-        setDocuments(response.data);
-      }
+      // Wenn ein Suchbegriff existiert, nutzen wir den neuen /search Endpunkt
+      const url = query 
+        ? `http://localhost:8080/api/documents/search?q=${encodeURIComponent(query)}`
+        : 'http://localhost:8080/api/documents';
+        
+      const response = await fetch(url);
+      const data = await response.json();
+      setDocuments(data);
     } catch (error) {
-      console.error("Fehler beim Laden der Dokumente", error);
+      console.error("Fehler beim Laden/Suchen:", error);
     }
   };
 
    // Datei-Upload (Erstellt ein Hauptdokument)
   const handleFileUpload = async (event) => {
-    const file = event.target.files[0];
+    // WICHTIG: [0] hinzugefügt, um die eigentliche Datei zu greifen!
+    const file = event.target.files[0]; 
     if (!file) return;
 
     const formData = new FormData();
@@ -40,13 +53,13 @@ function DocumentManager() {
 
     try {
       await axios.post("http://localhost:8080/api/documents", formData);
-      fetchDocuments(); 
+      alert("Hauptdokument hochgeladen!");
+      fetchDocuments(searchQuery); // Behalte aktuellen Suchfilter bei
       event.target.value = null; // Input zurücksetzen
     } catch (error) {
       console.error("Fehler beim Upload", error);
     }
   };
-
 
    const fetchCategories = async () => {
     try {
@@ -59,24 +72,25 @@ function DocumentManager() {
 
    // NEUE VERSION HOCHLADEN (Kopplung an ein existierendes Dokument)
   const handleUploadNewVersion = async (event, parentId, categoryId) => {
+    // WICHTIG: [0] hinzugefügt, um die eigentliche Datei zu greifen!
     const file = event.target.files[0];
     if (!file) return;
 
     const formData = new FormData();
     formData.append("file", file);
     formData.append("title", file.name);
-    formData.append("parentDocumentId", parentId); // Dem Backend sagen, wovon das die neue Version ist
+    formData.append("parentDocumentId", parentId); 
     if (categoryId) formData.append("categoryId", categoryId);
 
     try {
       await axios.post("http://localhost:8080/api/documents/version", formData);
-      fetchDocuments();
+      alert("Neue Version erfolgreich hinzugefügt!");
+      fetchDocuments(searchQuery);
       event.target.value = null;
     } catch (error) {
       console.error("Fehler beim Hochladen der neuen Version", error);
     }
   };
-
   // AKTIONEN: Preview, Download, Delete, Move
   const handlePreview = (docId) => {
     window.open(`http://localhost:8080/api/documents/preview/${docId}`, '_blank');
@@ -168,7 +182,7 @@ function DocumentManager() {
         }}>
           <div>
             {isVersion ? '↳ ' : '📄 '} 
-            <strong>{doc.title}</strong> 
+            <strong>{doc.title || doc.fileName}</strong> 
             <span style={{ fontSize: '11px', color: '#777', marginLeft: '8px' }}>
               (Ver. {doc.version || '1'})
             </span>
@@ -176,11 +190,11 @@ function DocumentManager() {
 
           {/* BUTTON-LEISTE */}
           <div style={{ display: 'flex', gap: '5px', alignItems: 'center' }}>
-            <button onClick={() => handlePreview(doc.id)} style={{ fontSize: '12px' }}>Preview</button>
-            <button onClick={() => handleDownload(doc.id, doc.title)} style={{ fontSize: '12px' }}>Download</button>
-            <button onClick={() => handleMove(doc.id)} style={{ fontSize: '12px' }}>Move</button>
-            <button onClick={() => handleDelete(doc.id)} style={{ fontSize: '12px', color: 'red' }}>Delete</button>
-            
+            <button id="preview" onClick={() => handlePreview(doc.id)} style={{ fontSize: '12px' }}>Preview</button>
+            <button id="download" onClick={() => handleDownload(doc.id, doc.title)} style={{ fontSize: '12px' }}>Download</button>
+            <button id="move" onClick={() => handleMove(doc.id)} style={{ fontSize: '12px' }}>Move</button>
+            <button id="delete" onClick={() => handleDelete(doc.id)} style={{ fontSize: '12px', color: 'red' }}>Delete</button>
+
             {/* Nur bei Hauptdokumenten: Button um eine neue Version hochzuladen */}
             {!isVersion && (
               <label style={{
@@ -206,7 +220,65 @@ function DocumentManager() {
 
   return (
     <div style={{ padding: '20px', fontFamily: 'sans-serif', maxWidth: '900px', margin: '0 auto' }}>
+       <div style={{ padding: '20px', fontFamily: 'sans-serif' }}>
+      <h1>Dokumentenmanagement mit Volltextsuche</h1>
       
+    
+      {/* NEU: Suchformular für die Volltextsuche */}
+      <form onSubmit={handleSearchSubmit} style={{ marginBottom: '20px' }}>
+        <input 
+          type="text" 
+          placeholder="Inhalt oder Titel suchen..." 
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          style={{ width: '300px', padding: '8px', marginRight: '10px' }}
+        />
+        <button type="submit" style={{ padding: '8px 15px' }}>Suchen</button>
+        {searchQuery && (
+          <button 
+            type="button" 
+            onClick={() => { setSearchQuery(""); fetchDocuments(""); }} 
+            style={{ marginLeft: '5px', padding: '8px' }}
+          >
+            Zurücksetzen
+          </button>
+        )}
+      </form>
+
+        {/* Dokumentenliste */}
+      <h2>Suchergebnisse ({documents.length})</h2>
+      <table border="1" cellPadding="10" style={{ width: '100%', borderCollapse: 'collapse' }}>
+        <thead>
+          <tr style={{ backgroundColor: '#f2f2f2' }}>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Typ</th>
+            <th>Größe (Bytes)</th>
+            <th>Hochgeladen am</th>
+          </tr>
+        </thead>
+        <tbody>
+          {documents.length > 0 ? (
+            documents.map((doc) => (
+              <tr key={doc.id}>
+                <td>{doc.id}</td>
+                <td>{doc.fileName}</td>
+                <td>{doc.fileType}</td>
+                <td>{doc.fileSize}</td>
+                <td>{new Date(doc.uploadTime).toLocaleString()}</td>
+              </tr>
+            ))
+          ) : (
+            <tr>
+              <td colSpan="5" style={{ textAlign: 'center' }}>Keine Dokumente gefunden, die zum Suchbegriff passen.</td>
+            </tr>
+          )}
+        </tbody>
+      </table>
+      <br/>
+  <br/>
+    <br/>
+
       {/* 1. DOKUMENT-SUCHE & FILTER (OBEN) */}
       <div style={{ padding: '15px', border: '1px solid #ccc', borderRadius: '6px', marginBottom: '20px', backgroundColor: '#f8fafc' }}>
         <h4>🔍 Dokumenten-Schnellsuche</h4>
@@ -277,6 +349,8 @@ function DocumentManager() {
           </div>
         </div>
       </div>
+    </div>
+    
   );
 };
 

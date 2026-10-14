@@ -18,7 +18,7 @@ Ein modernes, leichtgewichtiges Dokumentenmanagementsystem mit automatischer **V
 *   🔍 **Echtzeit-Suche & Filter:** Blitzschnelles Filtern nach Dateinamen oder Kategorien direkt im Frontend.
 *   👁️ **Preview & Download:** PDFs und Bilder direkt im Browser-Tab ansehen oder mit Originalnamen herunterladen.
 *   📦 **Verschieben & Löschen:** Dokumente nachträglich in andere Kategorien verschieben (`Move`) oder physisch sowie aus der Datenbank löschen.
-
+*   📦 **Volltextsuche:** Dokumente nach Schlagwörtern durchsuchen.
 ---
 
 ## 📋 Voraussetzungen

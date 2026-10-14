@@ -17,6 +17,10 @@ public class Document {
     private String fileType;
     private Long fileSize;
 
+    @Column(columnDefinition = "TEXT")
+private String fileContent; // Hier landet der extrahierte Text
+
+
     @SuppressWarnings("deprecation")
     @Temporal(TemporalType.TIMESTAMP)
     private Date createdAt; // Das Feld für das Datum

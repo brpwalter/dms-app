@@ -21,6 +21,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+
 @CrossOrigin(origins = "http://localhost:5173")
 @RestController
 @RequestMapping("/api/documents")
@@ -59,6 +60,7 @@ public class DocumentController {
             @RequestParam("file") MultipartFile file,
             @RequestParam("title") String title,
             @RequestParam(value = "categoryId", required = false) Long categoryId) {
+
         try {
             Files.createDirectories(rootLocation);
             String customFileName = System.currentTimeMillis() + "_" + file.getOriginalFilename();
@@ -182,13 +184,18 @@ public class DocumentController {
     }
 
       // Beispielhafter Such-Endpunkt gegen den 404-Fehler
-    @GetMapping("/search")
-    public ResponseEntity<List<Document>> searchDocuments(@RequestParam(value = "query", required = false, defaultValue = "") String query) {
-        // Hier suchst du später in der DB. 
-        // Für den Moment geben wir einfach eine leere Liste zurück, damit React nicht meckert.
-        List<Document> emptyList = new ArrayList<>();
-        return ResponseEntity.ok(emptyList);
+  @GetMapping("/search")
+public ResponseEntity<List<Document>> searchDocuments(@RequestParam("q") String query) {
+    if (query == null || query.trim().isEmpty()) {
+        // Falls die Suche leer ist, einfach alle Dokumente zurückgeben
+        return ResponseEntity.ok(documentRepository.findAll());
     }
+    
+    // Ruft die PostgreSQL-Volltextsuche auf, die wir in Schritt 4 gebaut haben
+    List<Document> results = documentRepository.searchByContent(query);
+    return ResponseEntity.ok(results);
+}
+
 
     // 2. Alle Dokumente (Metadaten) auflisten
     @GetMapping
@@ -212,5 +219,7 @@ public ResponseEntity<org.springframework.core.io.Resource> downloadDocument(@Pa
                     "attachment; filename=\"" + doc.getFileName() + "\"")
             .body(fileResource);
 } */
+
+            
 
 }

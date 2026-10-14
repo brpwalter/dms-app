@@ -188,22 +188,22 @@ const handleCreateCategory = async (e) => {
           <form onSubmit={isRegistering ? handleRegister : handleLogin} className="space-y-4">
             <div>
               <label className="text-slate-300 block mb-1 text-sm font-medium">Benutzername</label>
-              <input type="text" className="w-full bg-slate-700 text-white rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500 transition" value={username} onChange={e => setUsername(e.target.value)} required />
+              <input id="username" type="text" className="w-full bg-slate-700 text-white rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500 transition" value={username} onChange={e => setUsername(e.target.value)} required />
             </div>
 
             {/* 3. VISUELLES E-MAIL FELD NUR BEI DER REGISTRIERUNG ANZEIGEN */}
             {isRegistering && (
               <div>
                 <label className="text-slate-300 block mb-1 text-sm font-medium">E-Mail-Adresse</label>
-                <input type="email" className="w-full bg-slate-700 text-white rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500 transition" value={email} onChange={e => setEmail(e.target.value)} required />
+                <input id="email" type="email" className="w-full bg-slate-700 text-white rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500 transition" value={email} onChange={e => setEmail(e.target.value)} required />
               </div>
             )}
 
             <div>
               <label className="text-slate-300 block mb-1 text-sm font-medium">Passwort</label>
-              <input type="password" className="w-full bg-slate-700 text-white rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500 transition" value={password} onChange={e => setPassword(e.target.value)} required />
+              <input id="password" type="password" className="w-full bg-slate-700 text-white rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500 transition" value={password} onChange={e => setPassword(e.target.value)} required />
             </div>
-            <button type="submit" className={`w-full text-white font-bold p-3 rounded-lg transition duration-200 mt-2 shadow-lg ${isRegistering ? 'bg-emerald-600 hover:bg-emerald-700 shadow-emerald-600/20' : 'bg-blue-600 hover:bg-blue-700 shadow-blue-600/20'}`}>
+            <button id="signin" type="submit" className={`w-full text-white font-bold p-3 rounded-lg transition duration-200 mt-2 shadow-lg ${isRegistering ? 'bg-emerald-600 hover:bg-emerald-700 shadow-emerald-600/20' : 'bg-blue-600 hover:bg-blue-700 shadow-blue-600/20'}`}>
               {isRegistering ? 'Registrieren' : 'Sign In'}
             </button>
           </form>
@@ -234,13 +234,13 @@ const handleCreateCategory = async (e) => {
           <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
             <h3 className="text-base font-bold text-slate-900 mb-4 flex items-center"><span className="w-2.5 h-2.5 bg-blue-600 rounded-full mr-2"></span> Neues Dokument</h3>
             <form onSubmit={handleUploadDocument} className="space-y-3">
-              <input type="text" placeholder="Dokumententitel..." className="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-sm outline-none focus:border-blue-500 transition" value={documentTitle} onChange={e => setDocumentTitle(e.target.value)} required />
-              <select className="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-sm outline-none focus:border-blue-500 transition" value={selectedCategory} onChange={e => setSelectedCategory(e.target.value)} required>
+              <input id="documentTitle" type="text" placeholder="Dokumententitel..." className="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-sm outline-none focus:border-blue-500 transition" value={documentTitle} onChange={e => setDocumentTitle(e.target.value)} required />
+              <select id="selectedCategory" className="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-sm outline-none focus:border-blue-500 transition" value={selectedCategory} onChange={e => setSelectedCategory(e.target.value)} required>
                 <option value="">Kategorie wählen...</option>
                 {categories && categories.length > 0 && categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
               </select>
-              <input type="file" className="w-full text-xs text-slate-500 file:mr-2 file:py-2 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer" onChange={handleFileChange} required />
-              <button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold p-2.5 rounded-lg text-sm transition">Hochladen</button>
+              <input id="documentFile" type="file" className="w-full text-xs text-slate-500 file:mr-2 file:py-2 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer" onChange={handleFileChange} required />
+              <button id="upload" type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold p-2.5 rounded-lg text-sm transition">Hochladen</button>
             </form>
           </div>
 
@@ -251,6 +251,7 @@ const handleCreateCategory = async (e) => {
     </h3>
     <form onSubmit={handleCreateCategory} className="space-y-3">
       <input 
+        id="newcategory"
         type="text" 
         placeholder="Kategoriename (z.B. Rechnungen)..." 
         className="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-sm outline-none focus:border-blue-500 transition" 
@@ -258,7 +259,7 @@ const handleCreateCategory = async (e) => {
         onChange={e => setNewCategoryName(e.target.value)} 
         required 
       />
-      <button type="submit" className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold p-2.5 rounded-lg text-sm transition">
+      <button id="addcategory" type="submit" className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold p-2.5 rounded-lg text-sm transition">
         Kategorie erstellen
       </button>
     </form>

@@ -14,4 +14,7 @@ public interface DocumentRepository extends JpaRepository<Document, Long> {
      // Findet die aktuell höchste Versionsnummer für ein Dokument
     @Query("SELECT MAX(d.version) FROM Document d WHERE d.id = :parentId OR d.parentDocumentId = :parentId")
     Optional<Integer> findMaxVersionByParentId(@Param("parentId") Long parentId);
+
+     @Query(value = "SELECT * FROM documents WHERE to_tsvector('german', file_content) @@ websearch_to_tsquery('german', :query)", nativeQuery = true)
+    List<Document> searchByContent(@Param("query") String query);
 }
